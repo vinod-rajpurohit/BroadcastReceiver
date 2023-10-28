@@ -12,35 +12,40 @@ import android.content.IntentFilter;
 import android.os.Handler;
 import android.util.Log;
 
+import androidx.work.Constraints;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+
 import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 public class MyApp extends Application {
     private static Context appContext;
-
     @Override
     public void onCreate() {
         super.onCreate();
 
-
-        Log.d("MyBackgroundService", "Background task is running.");
+        Log.d("MyBackgroundService", "MY App Started");
         appContext = MyApp.this; // Store the application context
-     //   Intent intent = new Intent(appContext, ToastService.class);
- //       appContext.startService(intent);
-        setAlarm("com.apps.broadcastandservice.START_BACKGROUND_SERVICE", 9, 0);
-        setAlarm("com.apps.broadcastandservice.STOP_BACKGROUND_SERVICE", 19, 0);
+
+
+        PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(MyWorker.class, 16, TimeUnit.MINUTES)
+                .build();
+
+        WorkManager.getInstance(appContext).enqueue(workRequest);
+
+
+   //  setAlarm("com.apps.broadcastandservice.START_BACKGROUND_SERVICE", 9, 0);
+   //  setAlarm("com.apps.broadcastandservice.STOP_BACKGROUND_SERVICE", 20, 0);
     }
 
     private void setAlarm(String action, int hour, int minute) {
 
-        // Create an instance of the receiver
-        StartStopReceiver startStopReceiver;
-        startStopReceiver = new StartStopReceiver();
-
-        // Register the receiver with the intent filter
-
-        Log.d("MyBackgroundService", "Background task is running2.");
+        Log.d("MyBackgroundService", "Set Alarm");
         AlarmManager alarmManager = (AlarmManager) appContext.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(action);
+        Intent intent = new Intent(appContext,StartStopReceiver.class);
+        intent.setAction(action);
+
         PendingIntent pendingIntent = PendingIntent.getBroadcast(appContext, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
         // Set the alarm to trigger at the specified time
@@ -49,21 +54,25 @@ public class MyApp extends Application {
         calendar.set(Calendar.MINUTE, minute);
         calendar.set(Calendar.SECOND, 0);
 
-       alarmManager.setRepeating(AlarmManager.RTC, calendar.getTimeInMillis(), AlarmManager.INTERVAL_FIFTEEN_MINUTES, pendingIntent);
+       alarmManager.setRepeating(AlarmManager.RTC, calendar.getTimeInMillis(), + (60 * 1000), pendingIntent);
 
 /*
-
         IntentFilter intentFilter = new IntentFilter("com.apps.broadcastandservice.START_BACKGROUND_SERVICE");
         registerReceiver(startStopReceiver, intentFilter);
 
  */
 
+    }
+
+    @Override
+    public void onTerminate() {
+       super.onTerminate();
+        setAlarm("com.apps.broadcastandservice.START_BACKGROUND_SERVICE", 9, 0);
+        setAlarm("com.apps.broadcastandservice.STOP_BACKGROUND_SERVICE", 20, 0);
+    }
 
 
-
-
-
-/*
+    /*
         StartStopReceiver startStopReceiver;
         startStopReceiver = new StartStopReceiver();
 
@@ -87,5 +96,5 @@ public class MyApp extends Application {
         }, 2000);
 
  */
-    }
+
 }
