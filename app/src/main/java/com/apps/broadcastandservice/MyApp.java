@@ -20,7 +20,14 @@ import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 public class MyApp extends Application {
+
+
     private static Context appContext;
+    int hour=0,minute=0;
+
+    AlarmManager alarmManager;
+
+    PendingIntent pendingIntent;
     @Override
     public void onCreate() {
         super.onCreate();
@@ -28,14 +35,36 @@ public class MyApp extends Application {
         Log.d("MyBackgroundService", "MY App Started");
         appContext = MyApp.this; // Store the application context
 
+        alarmManager = (AlarmManager) appContext.getSystemService(Context.ALARM_SERVICE);
 
+        Intent intent = new Intent(appContext,ToastService.class);
+        pendingIntent = PendingIntent.getService(appContext, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+
+        // Set the alarm to trigger at the specified time
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.HOUR_OF_DAY, hour);
+        calendar.set(Calendar.MINUTE, minute);
+        calendar.set(Calendar.SECOND, 0);
+
+        alarmManager.setRepeating(AlarmManager.RTC, calendar.getTimeInMillis(), + (60 * 1000), pendingIntent);
+
+
+
+
+/*
         PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(MyWorker.class, 16, TimeUnit.MINUTES)
                 .build();
 
         WorkManager.getInstance(appContext).enqueue(workRequest);
 
+ */
 
-   //  setAlarm("com.apps.broadcastandservice.START_BACKGROUND_SERVICE", 9, 0);
+
+
+
+
+
+  // setAlarm("com.apps.broadcastandservice.START_BACKGROUND_SERVICE", 9, 0);
    //  setAlarm("com.apps.broadcastandservice.STOP_BACKGROUND_SERVICE", 20, 0);
     }
 
@@ -43,10 +72,10 @@ public class MyApp extends Application {
 
         Log.d("MyBackgroundService", "Set Alarm");
         AlarmManager alarmManager = (AlarmManager) appContext.getSystemService(Context.ALARM_SERVICE);
-        Intent intent = new Intent(appContext,StartStopReceiver.class);
+        Intent intent = new Intent(appContext,MyWorker.class);
         intent.setAction(action);
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(appContext, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent pendingIntent = PendingIntent.getService(appContext, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
         // Set the alarm to trigger at the specified time
         Calendar calendar = Calendar.getInstance();
@@ -63,13 +92,16 @@ public class MyApp extends Application {
  */
 
     }
-
+/*
     @Override
     public void onTerminate() {
        super.onTerminate();
         setAlarm("com.apps.broadcastandservice.START_BACKGROUND_SERVICE", 9, 0);
         setAlarm("com.apps.broadcastandservice.STOP_BACKGROUND_SERVICE", 20, 0);
     }
+
+ */
+
 
 
     /*
@@ -95,6 +127,17 @@ public class MyApp extends Application {
             }
         }, 2000);
 
- */
+
+
+     */
+
+    @Override
+    public void onTerminate() {
+        super.onTerminate();
+        alarmManager.cancel(pendingIntent);
+    }
 
 }
+
+
+

@@ -8,7 +8,6 @@ import android.util.Log;
 
 public class StartStopReceiver extends BroadcastReceiver {
 
-
     @Override
     public void onReceive(Context context, Intent intent) {
 
@@ -24,15 +23,11 @@ public class StartStopReceiver extends BroadcastReceiver {
                 context.startService(serviceIntent);
             }
 
-
-
         } else if (intent.getAction().equals("com.apps.broadcastandservice.STOP_BACKGROUND_SERVICE")) {
             // Stop your service
             Log.d("MyBackgroundService", "BroadcastReceiver onReceive Stop");
             Intent serviceIntent = new Intent(context, ToastService.class);
-
             context.stopService(serviceIntent);
-
         }
     }
 }
