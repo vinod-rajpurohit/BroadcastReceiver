@@ -13,6 +13,8 @@ import android.os.Handler;
 import android.util.Log;
 
 import androidx.work.Constraints;
+import androidx.work.NetworkType;
+import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
@@ -24,39 +26,63 @@ public class MyApp extends Application {
 
     private static Context appContext;
     int hour=0,minute=0;
-
     AlarmManager alarmManager;
-
     PendingIntent pendingIntent;
+
+    PeriodicWorkRequest workRequest;
     @Override
     public void onCreate() {
         super.onCreate();
 
         Log.d("MyBackgroundService", "MY App Started");
         appContext = MyApp.this; // Store the application context
-        alarmManager = (AlarmManager) appContext.getSystemService(Context.ALARM_SERVICE);
-        StartServiceOnTime();
+
+     //   StartServiceOnTime();
+
+
+        Calendar c = Calendar.getInstance();
+        int timeOfDay = c.get(Calendar.HOUR_OF_DAY);
+
+            Constraints constraints = new Constraints.Builder()
+                .setRequiresBatteryNotLow(true)
+                    .setRequiresCharging(false)
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build();
+        if (timeOfDay >= 9 && timeOfDay < 21) {
+             workRequest = new PeriodicWorkRequest.Builder(MyWorker.class, 1, TimeUnit.MINUTES)
+                    .setConstraints(constraints)
+                    .build();
+
+            WorkManager.getInstance(appContext).enqueue(workRequest);
+        }
+
+        else {
+            WorkManager.getInstance(appContext).cancelWorkById(workRequest.getId());
+        }
+
 
 
 /*
-        PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(MyWorker.class, 16, TimeUnit.MINUTES)
+        OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(MyWorker.class)
+                .setConstraints(constraints)
                 .build();
 
-        WorkManager.getInstance(appContext).enqueue(workRequest);
+         */
 
- */
 
-  // setAlarm("com.apps.broadcastandservice.START_BACKGROUND_SERVICE", 9, 0);
-   //  setAlarm("com.apps.broadcastandservice.STOP_BACKGROUND_SERVICE", 20, 0);
+
+    // setAlarm("com.apps.broadcastandservice.START_BACKGROUND_SERVICE", 9, 0);
+    //  setAlarm("com.apps.broadcastandservice.STOP_BACKGROUND_SERVICE", 20, 0);
     }
 
     private void StartServiceOnTime() {
         // Get the current time.
+        alarmManager = (AlarmManager) appContext.getSystemService(Context.ALARM_SERVICE);
         Calendar calendar = Calendar.getInstance();
 
         // Check if the current time is between 9 AM and 9 PM.
         if (calendar.get(Calendar.HOUR_OF_DAY) >= 9 && calendar.get(Calendar.HOUR_OF_DAY) < 21) {
-            Log.d("MyBackgroundService", "Time is Between 9AM - 9PM");
+             Log.d("MyBackgroundService", "Time is Between 9AM - 9PM");
             Intent intent = new Intent(appContext,ToastService.class);
             pendingIntent = PendingIntent.getService(appContext, 0, intent, PendingIntent.FLAG_IMMUTABLE);
 
@@ -66,8 +92,9 @@ public class MyApp extends Application {
             calendar2.set(Calendar.MINUTE, minute);
             calendar2.set(Calendar.SECOND, 0);
 
+        //    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC, calendar2.getTimeInMillis() + (60 * 1000), pendingIntent);
 
-            alarmManager.setRepeating(AlarmManager.RTC, calendar2.getTimeInMillis(),+ (60 * 1000), pendingIntent);
+             alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar2.getTimeInMillis(),+ (60 * 1000), pendingIntent);
 
         } else {
             // Stop the service.
@@ -77,6 +104,7 @@ public class MyApp extends Application {
         }
     }
 
+    /*
     private void setAlarm(String action, int hour, int minute) {
 
         Log.d("MyBackgroundService", "Set Alarm");
@@ -97,11 +125,10 @@ public class MyApp extends Application {
 /*
         IntentFilter intentFilter = new IntentFilter("com.apps.broadcastandservice.START_BACKGROUND_SERVICE");
         registerReceiver(startStopReceiver, intentFilter);
-
+        }
  */
 
-    }
-/*
+    /*
     @Override
     public void onTerminate() {
        super.onTerminate();
@@ -110,8 +137,6 @@ public class MyApp extends Application {
     }
 
  */
-
-
 
     /*
         StartStopReceiver startStopReceiver;
@@ -138,8 +163,8 @@ public class MyApp extends Application {
 
 
 
-     */
 
+*/
     @Override
     public void onTerminate() {
         super.onTerminate();

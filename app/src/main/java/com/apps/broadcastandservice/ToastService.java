@@ -21,8 +21,13 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.security.Provider;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -30,8 +35,9 @@ public class ToastService extends Service {
 
     private static final int NOTIFICATION_ID = 1;
     private static final String CHANNEL_ID = "foreground_service_channel";
-
     private boolean isServiceRunning = false;
+    FirebaseDatabase firebaseDatabase;
+    DatabaseReference databaseReference;
 
     @Override
     public void onCreate() {
@@ -80,12 +86,18 @@ public class ToastService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
+        // Get the current time in the "HH:mm:ss" format.
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
+        String time = simpleDateFormat.format(new Date(System.currentTimeMillis()));
+
+        firebaseDatabase = FirebaseDatabase.getInstance();
+        databaseReference = firebaseDatabase.getReference("message");
+        databaseReference.setValue(time);
+
         // Perform your background task here.
         Log.d("MyBackgroundService", "Service onStartCommand");
 
         // Return START_STICKY to ensure the service restarts if it gets killed by the system.
         return START_STICKY;
     }
-
-
 }
