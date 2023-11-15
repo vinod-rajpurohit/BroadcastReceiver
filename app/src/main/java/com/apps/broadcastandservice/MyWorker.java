@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.work.PeriodicWorkRequest;
@@ -25,17 +26,12 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class MyWorker extends Worker {
-
     Context context;
     int hour=0,minute=0;
-
-
     FirebaseDatabase firebaseDatabase;
     DatabaseReference databaseReference;
-
     private static final int NOTIFICATION_ID = 1;
     private static final String CHANNEL_ID = "foreground_service_channel";
-
     public MyWorker(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
         this.context = context;
@@ -51,8 +47,10 @@ public class MyWorker extends Worker {
         databaseReference = firebaseDatabase.getReference("message");
         databaseReference.setValue(time);
 
-
         Log.d("MyBackgroundService", "doWork");
+
+
+
 /*
         Intent intent = new Intent(context,ToastService.class);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -86,7 +84,6 @@ public class MyWorker extends Worker {
         intent.setAction("com.apps.broadcastandservice.STOP_BACKGROUND_SERVICE");
         context.sendBroadcast(intent2);
        */
-
-        return Result.success();
+         return Result.success();
+        }
     }
-}

@@ -39,17 +39,19 @@ public class MyApp extends Application {
 
      //   StartServiceOnTime();
 
-
         Calendar c = Calendar.getInstance();
         int timeOfDay = c.get(Calendar.HOUR_OF_DAY);
 
+        if (timeOfDay >= 9 && timeOfDay < 21) {
+            Log.d("MyBackgroundService", "Time In");
             Constraints constraints = new Constraints.Builder()
-                .setRequiresBatteryNotLow(true)
+
+
+                    .setRequiresBatteryNotLow(true)
                     .setRequiresCharging(false)
                     .setRequiredNetworkType(NetworkType.CONNECTED)
                     .build();
-        if (timeOfDay >= 9 && timeOfDay < 21) {
-             workRequest = new PeriodicWorkRequest.Builder(MyWorker.class, 1, TimeUnit.MINUTES)
+             workRequest = new PeriodicWorkRequest.Builder(MyWorker.class, 15, TimeUnit.MINUTES)
                     .setConstraints(constraints)
                     .build();
 
@@ -57,19 +59,18 @@ public class MyApp extends Application {
         }
 
         else {
-            WorkManager.getInstance(appContext).cancelWorkById(workRequest.getId());
+            if (workRequest != null) {
+                Log.d("MyBackgroundService", "Time Out");
+                WorkManager.getInstance(appContext).cancelWorkById(workRequest.getId());
+            }
         }
 
-
-
-/*
+        /*
         OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(MyWorker.class)
                 .setConstraints(constraints)
                 .build();
 
          */
-
-
 
     // setAlarm("com.apps.broadcastandservice.START_BACKGROUND_SERVICE", 9, 0);
     //  setAlarm("com.apps.broadcastandservice.STOP_BACKGROUND_SERVICE", 20, 0);
@@ -170,6 +171,7 @@ public class MyApp extends Application {
         super.onTerminate();
         alarmManager.cancel(pendingIntent);
     }
+
 
 }
 
